@@ -1,6 +1,6 @@
 # starship-claude
 
-[![CI](https://github.com/martinemde/starship-claude/actions/workflows/ci.yml/badge.svg)](https://github.com/martinemde/starship-claude/actions/workflows/ci.yml)
+[![CI](https://github.com/prelude-rs/starship-claude/actions/workflows/ci.yml/badge.svg)](https://github.com/prelude-rs/starship-claude/actions/workflows/ci.yml)
 
 ![starship-claude screenshot](screenshot.png)
 
@@ -12,7 +12,7 @@ _Use [Starship](https://starship.rs) for your [`claude` code](https://claude.ai/
 > Run each of the following commands in `claude` _one at a time_.
 
 ```claude
-/plugin marketplace add martinemde/starship-claude
+/plugin marketplace add prelude-rs/starship-claude
 ```
 
 ```claude
@@ -59,12 +59,12 @@ When you're ready to install, run these in your terminal (not in claude):
 ```bash
 # Download the script from this repository
 mkdir -p ~/.local/bin
-curl -fsSL https://raw.githubusercontent.com/martinemde/starship-claude/main/plugin/bin/starship-claude \
+curl -fsSL https://raw.githubusercontent.com/prelude-rs/starship-claude/main/plugin/bin/starship-claude \
   -o ~/.local/bin/starship-claude && chmod +x ~/.local/bin/starship-claude
 
 # Get the config file that you can customize
 mkdir -p ~/.claude
-curl -fsSL https://raw.githubusercontent.com/martinemde/starship-claude/main/plugin/templates/minimal-nerd.toml \
+curl -fsSL https://raw.githubusercontent.com/prelude-rs/starship-claude/main/plugin/templates/minimal-nerd.toml \
   -o ~/.claude/starship.toml
 ```
 
@@ -80,7 +80,7 @@ Add the statusline in your Claude Code settings (`~/.claude/settings.json`):
 }
 ```
 
-Run it directly to test it out but you'll need to grab a [test fixture JSON file](https://raw.githubusercontent.com/martinemde/starship-claude/refs/heads/main/test/fixtures/low_cost_session.json).
+Run it directly to test it out but you'll need to grab a [test fixture JSON file](https://raw.githubusercontent.com/prelude-rs/starship-claude/refs/heads/main/test/fixtures/low_cost_session.json).
 
 ```sh
 ./plugin/bin/starship-claude < test/fixtures/low_cost_session.json

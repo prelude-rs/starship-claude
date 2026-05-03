@@ -249,6 +249,59 @@ if command -v jq >/dev/null 2>&1 && [ -n "$payload" ]; then
   fi
 
   #
+  # Corrected cost from transcript: dedup by message.id, apply per-model pricing.
+  # Claude Code's reported total_cost_usd can drift from retail-rate truth, so
+  # replay the JSONL ourselves. Cached by (session_id + transcript size) to skip
+  # rework when no new turns have arrived.
+  #
+  corrected_cost=""
+  if [ -n "${CLAUDE_TRANSCRIPT_PATH:-}" ] && [ -f "$CLAUDE_TRANSCRIPT_PATH" ] && [ -n "${CLAUDE_SESSION_ID:-}" ]; then
+    cache_file="/tmp/claude-cost-corrected-${CLAUDE_SESSION_ID}"
+    transcript_size="$(stat -c%s "$CLAUDE_TRANSCRIPT_PATH" 2>/dev/null || echo "0")"
+
+    if [ -f "$cache_file" ]; then
+      cached_size="$(jq -r '.size // "0"' "$cache_file" 2>/dev/null || echo "0")"
+      if [ "$cached_size" = "$transcript_size" ]; then
+        corrected_cost="$(jq -r '.cost // empty' "$cache_file" 2>/dev/null || true)"
+      fi
+    fi
+
+    if [ -z "$corrected_cost" ]; then
+      corrected_cost="$(jq -rs '
+        def pricing(m):
+          if   (m | test("opus"))   then {i:15.0,  o:75.0,  cc:18.75, cr:1.50}
+          elif (m | test("sonnet")) then {i:3.0,   o:15.0,  cc:3.75,  cr:0.30}
+          elif (m | test("haiku"))  then {i:0.80,  o:4.0,   cc:1.0,   cr:0.08}
+          else                           {i:3.0,   o:15.0,  cc:3.75,  cr:0.30}
+          end;
+        [.[] | select(.type == "assistant" and .message.id != null and .message.usage != null)]
+        | unique_by(.message.id)
+        | map(
+            pricing(.message.model // "") as $p |
+            ((.message.usage.input_tokens               // 0) * $p.i  +
+             (.message.usage.output_tokens              // 0) * $p.o  +
+             (.message.usage.cache_creation_input_tokens // 0) * $p.cc +
+             (.message.usage.cache_read_input_tokens    // 0) * $p.cr)
+            / 1000000
+          )
+        | add // 0
+      ' "$CLAUDE_TRANSCRIPT_PATH" 2>/dev/null || echo "")"
+
+      if [ -n "$corrected_cost" ]; then
+        printf '{"size":%s,"cost":%s}' "$transcript_size" "$corrected_cost" > "$cache_file" 2>/dev/null || true
+      fi
+    fi
+  fi
+
+  if [ -n "$corrected_cost" ] && [ -n "$raw_cost" ]; then
+    corrected_fmt="$(printf '$%.2f' "$corrected_cost")"
+    reported_fmt="$(printf '$%.2f' "$raw_cost")"
+    export CLAUDE_COST="${corrected_fmt}~${reported_fmt}"
+  elif [ -n "$corrected_cost" ]; then
+    export CLAUDE_COST="$(printf '$%.2f' "$corrected_cost")"
+  fi
+
+  #
   # Session summary from transcript JSONL file
   #
   export CLAUDE_SUMMARY=""

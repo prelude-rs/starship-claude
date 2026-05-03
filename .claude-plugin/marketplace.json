@@ -1,8 +1,8 @@
 {
   "name": "starship-claude",
   "owner": {
-    "name": "Martin Emde",
-    "email": "me@martinemde.com"
+    "name": "Ricardo Nogueira",
+    "email": "ricardo@nogueira.cc"
   },
   "metadata": {
     "description": "starship-claude statusline setup wizard",
@@ -18,8 +18,8 @@
         "name": "Martin Emde",
         "email": "me@martinemde.com"
       },
-      "homepage": "https://github.com/martinemde/starship-claude",
-      "repository": "https://github.com/martinemde/starship-claude",
+      "homepage": "https://github.com/prelude-rs/starship-claude",
+      "repository": "https://github.com/prelude-rs/starship-claude",
       "keywords": [
         "starship",
         "statusline",
